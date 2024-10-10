@@ -1,0 +1,47 @@
+// LED 핀 번호 설정
+const byte ledPin = 13;
+// 인터럽트 핀 번호 설정 (엔코더 A 채널)
+const byte interruptPin = 2;
+// 엔코더의 B 채널 핀 번호 설정
+const byte encoder_B = 3;
+
+// LED 상태를 저장할 변수 (LOW: 꺼짐, HIGH: 켜짐)
+volatile byte state = LOW;
+// 엔코더의 A 채널 펄스 개수를 저장할 변수
+volatile long encoder_A_pulse_cnt = 0;
+
+void setup() {
+  // LED 핀을 출력 모드로 설정
+  pinMode(ledPin, OUTPUT);
+
+  // 인터럽트 핀을 입력 풀업 모드로 설정 (기본 HIGH)
+  pinMode(interruptPin, INPUT_PULLUP);
+
+  // 엔코더 B 채널 핀을 입력 풀업 모드로 설정
+  pinMode(encoder_B, INPUT_PULLUP);
+
+  // 엔코더 A 채널 펄스 개수 초기화
+  encoder_A_pulse_cnt = 0;
+
+  // 인터럽트 핀에 RISING 신호가 들어오면 EncoderA 함수 실행
+  attachInterrupt(digitalPinToInterrupt(interruptPin), EncoderA, RISING);
+
+  // 시리얼 통신 시작 (115200 보드레이트)
+  Serial.begin(115200);
+}
+
+void loop() {
+  // 현재 엔코더 A 채널의 펄스 개수를 시리얼 모니터에 출력
+  Serial.println(encoder_A_pulse_cnt);
+}
+
+void EncoderA() {
+  // B 채널의 상태를 읽어 A-B 채널을 비교
+  if (digitalRead(encoder_B) == LOW) {
+    // B 채널이 LOW면 반시계 방향, 펄스 카운트를 1 감소
+    encoder_A_pulse_cnt--;
+  } else {
+    // B 채널이 HIGH면 시계 방향, 펄스 카운트를 1 증가
+    encoder_A_pulse_cnt++;
+  }
+}
